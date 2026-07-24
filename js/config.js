@@ -212,7 +212,7 @@ const DEFAULT_CONFIG = {
   },
 
   // ========== 后台密码 ==========
-  adminPassword: "fondant2026",
+  adminPassword: "fantang2026",
 };
 
 // ========== 图标 SVG 库 ==========
