@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>后台管理 · 翻糖派对</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<!-- ========== Login ========== -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="logo">
+      翻糖派对
+      <span class="en">Fondant Party</span>
+    </div>
+    <h2>后台管理系统</h2>
+    <p class="hint">请输入管理密码</p>
+    <input type="password" class="login-input" id="loginInput" placeholder="管理密码" autofocus>
+    <button class="login-btn" id="loginBtn">进 入</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ========== Admin Panel ========== -->
+<div class="admin-layout" id="adminPanel" style="display:none">
+  <!-- Sidebar -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        翻糖派对
+        <span class="en">Admin Panel</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">概览</div>
+      <a href="#" data-section="dashboard" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        数据概览
+      </a>
+      <div class="nav-section">内容管理</div>
+      <a href="#" data-section="categories">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        品类管理
+      </a>
+      <a href="#" data-section="photos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        样片上传
+      </a>
+      <a href="#" data-section="site">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+        网站文案
+      </a>
+      <a href="#" data-section="contact">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        联系方式
+      </a>
+      <a href="#" data-section="services">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        服务项目
+      </a>
+      <div class="nav-section">系统</div>
+      <a href="#" data-section="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        系统设置
+      </a>
+      <a href="index.html" target="_blank">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        预览网站
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="index.html">← 返回网站</a>
+    </div>
+  </aside>
+
+  <!-- Main Area -->
+  <div class="main-area">
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn">☰</button>
+      <h1 id="pageTitle">数据概览</h1>
+      <div class="topbar-actions">
+        <button class="btn btn-outline btn-sm" id="exportBtn">导出数据</button>
+        <button class="btn btn-gold btn-sm" id="saveBtn" style="display:none">保存</button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ===== Dashboard ===== -->
+      <section class="admin-section active" id="section-dashboard">
+        <div class="stats-grid" id="statsGrid"></div>
+        <div class="card">
+          <div class="card-header"><h3>品类概览</h3></div>
+          <div class="card-body" id="dashboardCats"></div>
+        </div>
+      </section>
+
+      <!-- ===== Categories ===== -->
+      <section class="admin-section" id="section-categories">
+        <div class="card">
+          <div class="card-header">
+            <h3>品类管理</h3>
+            <button class="btn btn-gold btn-sm" id="addCatBtn">+ 新增品类</button>
+          </div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--ink-light);margin-bottom:16px">拖拽 ⋮⋮ 可调整品类显示顺序，点击编辑可修改名称和描述</p>
+            <div class="cat-list" id="catList"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Photos ===== -->
+      <section class="admin-section" id="section-photos">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header">
+            <h3>选择品类</h3>
+          </div>
+          <div class="card-body">
+            <select class="form-select" id="photoCatSelect" style="max-width:300px"></select>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3>样片管理 — <span id="photoCatName"></span></h3>
+            <span style="font-size:13px;color:var(--ink-light)" id="photoCount"></span>
+          </div>
+          <div class="card-body">
+            <div class="upload-zone" id="uploadZone">
+              <div class="icon">📷</div>
+              <p>点击或拖拽图片到此处上传</p>
+              <p class="hint">支持 JPG / PNG / WebP，单张建议小于 5MB</p>
+              <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
+            </div>
+            <div class="photo-grid" id="photoGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Site Text ===== -->
+      <section class="admin-section" id="section-site">
+        <div class="card">
+          <div class="card-header"><h3>网站文案设置</h3></div>
+          <div class="card-body">
+            <div class="settings-section">
+              <h4>首页 Hero 区域</h4>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">品牌名称（中文）</label>
+                  <input type="text" class="form-input" id="siteBrandName" placeholder="翻糖派对">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">品牌名称（英文）</label>
+                  <input type="text" class="form-input" id="siteBrandNameEn" placeholder="FONDANT PARTY">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">英文标签（首页顶部小字）</label>
+                <input type="text" class="form-input" id="siteHeroTag" placeholder="FONDANT PARTY">
+              </div>
+              <div class="form-group">
+                <label class="form-label">品牌标语</label>
+                <input type="text" class="form-input" id="siteTagline" placeholder="记录每一个值得庆祝的瞬间">
+              </div>
+            </div>
+            <div class="settings-section">
+              <h4>关于我们</h4>
+              <div class="form-group">
+                <label class="form-label">标题</label>
+                <input type="text" class="form-input" id="aboutTitle" placeholder="关于翻糖派对">
+              </div>
+              <div class="form-group">
+                <label class="form-label">正文段落（每行一段）</label>
+                <textarea class="form-textarea" id="aboutParagraphs" rows="5" placeholder="每行一段话"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">数据统计</label>
+                <div class="form-hint" style="margin-bottom:8px">格式：数字|标签，每行一组</div>
+                <textarea class="form-textarea" id="aboutStats" rows="3" placeholder="200+|场活动&#10;5年|行业经验&#10;100%|用心服务"></textarea>
+              </div>
+            </div>
+            <button class="btn btn-primary" id="saveSiteBtn">保存文案</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Contact ===== -->
+      <section class="admin-section" id="section-contact">
+        <div class="card">
+          <div class="card-header"><h3>联系方式设置</h3></div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">微信号</label>
+                <input type="text" class="form-input" id="contactWechat" placeholder="fondant_party">
+              </div>
+              <div class="form-group">
+                <label class="form-label">电话</label>
+                <input type="text" class="form-input" id="contactPhone" placeholder="138-0000-0000">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">小红书</label>
+                <input type="text" class="form-input" id="contactXhs" placeholder="@翻糖派对">
+              </div>
+              <div class="form-group">
+                <label class="form-label">邮箱（选填）</label>
+                <input type="text" class="form-input" id="contactEmail" placeholder="">
+              </div>
+            </div>
+            <button class="btn btn-primary" id="saveContactBtn">保存联系方式</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Services ===== -->
+      <section class="admin-section" id="section-services">
+        <div class="card">
+          <div class="card-header">
+            <h3>服务项目管理</h3>
+            <button class="btn btn-gold btn-sm" id="addServiceBtn">+ 新增服务</button>
+          </div>
+          <div class="card-body" id="servicesList"></div>
+        </div>
+      </section>
+
+      <!-- ===== Settings ===== -->
+      <section class="admin-section" id="section-settings">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header"><h3>修改管理密码</h3></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">新密码</label>
+              <input type="password" class="form-input" id="newPassword" placeholder="输入新密码">
+            </div>
+            <button class="btn btn-primary" id="changePwdBtn">修改密码</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header"><h3>数据导出 / 导入</h3></div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--ink-soft);margin-bottom:16px">
+              导出当前所有数据（含图片）为文件备份；导入可从备份文件恢复数据。<br>
+              <strong>注意：</strong>导入会覆盖现有数据，请谨慎操作。
+            </p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <button class="btn btn-outline" id="exportDataBtn">📥 导出数据</button>
+              <button class="btn btn-outline" id="importDataBtn">📤 导入数据</button>
+              <input type="file" id="importFileInput" accept=".json" style="display:none">
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>重置数据</h3></div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--danger);margin-bottom:16px">
+              ⚠️ 此操作将清除所有已上传的照片和修改的内容，恢复到初始状态，不可撤销！
+            </p>
+            <button class="btn btn-danger" id="resetBtn">重置所有数据</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- ========== Modal ========== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">编辑</h3>
+      <button class="btn-icon" id="modalClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+
+<!-- ========== Toast ========== -->
+<div class="toast" id="toast"></div>
+
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
