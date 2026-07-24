@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="description" content="翻糖派对 — 阜阳一站式全品类派对服务，场景布置、摄影跟拍、抓周布置、订婚宴布置、派对摄像、仪式主持">
+<title>翻糖派对 · 翻糖藏甜，镜头留欢</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ========== Navigation ========== -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="#hero" class="nav-logo">
+      <div class="logo-wrap">
+        <span>翻糖派对</span>
+        <span class="en">Fondant Party</span>
+      </div>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#about">关于我们</a></li>
+      <li><a href="#services">服务项目</a></li>
+      <li><a href="#portfolio">作品集</a></li>
+      <li><a href="#process">服务流程</a></li>
+      <li><a href="#promises">服务承诺</a></li>
+      <li><a href="#contact">联系我们</a></li>
+      <li><a href="admin.html" style="color:var(--gold)">后台管理</a></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="菜单">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ========== Hero ========== -->
+<section class="hero" id="hero">
+  <div class="hero-line"></div>
+  <div class="hero-content">
+    <div class="hero-tag" id="heroTag">FONDANT PARTY</div>
+    <h1 class="hero-title" id="heroTitle">翻糖派对</h1>
+    <p class="hero-title-en" id="heroTitleEn">Celebrate Every Moment</p>
+    <p class="hero-sub" id="heroSub">翻糖藏甜，镜头留欢</p>
+    <p class="hero-location" id="heroLocation">阜阳一站式全品类派对服务</p>
+    <div class="hero-btns">
+      <a href="#services" class="btn btn-primary">了解服务</a>
+      <a href="#contact" class="btn btn-outline">预约咨询</a>
+    </div>
+  </div>
+  <div class="scroll-hint">SCROLL</div>
+</section>
+
+<!-- ========== About ========== -->
+<section class="section about" id="about">
+  <div class="about-grid">
+    <div class="about-text fade-in">
+      <span class="label-en">ABOUT US</span>
+      <h3 id="aboutTitle">关于翻糖派对</h3>
+      <div id="aboutParagraphs"></div>
+      <div class="about-stats" id="aboutStats"></div>
+    </div>
+    <div class="about-visual fade-in">
+      <img src="images/brand/storefront.jpg" alt="翻糖派对店面" loading="lazy" id="aboutImg" onerror="this.src='https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&q=80'">
+    </div>
+  </div>
+</section>
+
+<!-- ========== Reasons ========== -->
+<section class="section reasons" id="reasons">
+  <div class="section-head fade-in">
+    <div class="section-label">WHY US</div>
+    <h2 class="section-title">选择翻糖派对的理由</h2>
+    <p class="section-title-en">Why Choose Fondant Party</p>
+  </div>
+  <div class="reasons-grid" id="reasonsGrid"></div>
+  <div class="reasons-footer fade-in" id="reasonsFooter"></div>
+</section>
+
+<!-- ========== Services ========== -->
+<section class="section services" id="services">
+  <div class="section-head fade-in">
+    <div class="section-label">OUR SERVICES</div>
+    <h2 class="section-title">6大服务套餐</h2>
+    <p class="section-title-en">What We Offer</p>
+  </div>
+  <div class="service-grid" id="serviceGrid"></div>
+</section>
+
+<!-- ========== Portfolio ========== -->
+<section class="section gallery-section" id="portfolio">
+  <div class="section-head fade-in">
+    <div class="section-label">PORTFOLIO</div>
+    <h2 class="section-title">作品集</h2>
+    <p class="section-title-en">Our Works</p>
+  </div>
+  <div class="cat-pills" id="catPills"></div>
+  <div class="gallery-grid" id="galleryGrid"></div>
+</section>
+
+<!-- ========== Process ========== -->
+<section class="section process" id="process">
+  <div class="section-head fade-in">
+    <div class="section-label" id="processLabel">OUR PROCESS</div>
+    <h2 class="section-title" id="processTitle">服务流程</h2>
+    <p class="section-title-en" id="processSub">From Planning to Delivery</p>
+  </div>
+  <div class="process-steps" id="processSteps"></div>
+  <div class="process-footer fade-in" id="processFooter"></div>
+</section>
+
+<!-- ========== Promises ========== -->
+<section class="section promises" id="promises">
+  <div class="section-head fade-in">
+    <div class="section-label" id="promisesLabel">OUR PROMISES</div>
+    <h2 class="section-title" id="promisesTitle">六大服务承诺</h2>
+    <p class="section-title-en" id="promisesSub">Your Satisfaction, Our Priority</p>
+  </div>
+  <div class="promises-grid" id="promisesGrid"></div>
+</section>
+
+<!-- ========== Contact ========== -->
+<section class="section contact" id="contact">
+  <div class="section-head fade-in">
+    <div class="section-label">CONTACT US</div>
+    <h2 class="section-title">联系我们</h2>
+    <p class="section-title-en">Get In Touch</p>
+  </div>
+  <div class="contact-info" id="contactInfo"></div>
+  <p class="contact-cta" id="contactCta">添加微信 · 预约咨询 · 定制属于你的派对</p>
+</section>
+
+<!-- ========== Footer ========== -->
+<footer class="footer">
+  <p>© 2026 翻糖派对 · Fondant Party · 翻糖藏甜，镜头留欢 · <a href="admin.html">后台管理</a></p>
+</footer>
+
+<!-- ========== Lightbox ========== -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lbClose" aria-label="关闭">&times;</button>
+  <button class="lightbox-nav lightbox-prev" id="lbPrev" aria-label="上一张">&#8249;</button>
+  <img class="lightbox-img" id="lbImg" src="" alt="">
+  <button class="lightbox-nav lightbox-next" id="lbNext" aria-label="下一张">&#8250;</button>
+  <div class="lightbox-label" id="lbLabel"></div>
+  <div class="lightbox-counter" id="lbCounter"></div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
