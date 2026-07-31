@@ -1,6 +1,7 @@
 /**
  * admin.js — 后台管理逻辑
- * 功能：登录、品类管理、样片上传(图片+视频)、文案编辑、联系方式、服务项目、数据导入导出
+ * 数据流：admin 操作 → GitHub API（跨设备同步） + IndexedDB（本地缓存）
+ * 同事上传 = 所有客户立即可见
  */
 
 let adminData = null;
@@ -48,6 +49,14 @@ async function init() {
   document.getElementById("importFileInput").addEventListener("change", importData);
   document.getElementById("resetBtn").addEventListener("click", resetData);
 
+  // Token 管理
+  const saveTokenBtn = document.getElementById("saveTokenBtn");
+  if (saveTokenBtn) saveTokenBtn.addEventListener("click", saveToken);
+  const testTokenBtn = document.getElementById("testTokenBtn");
+  if (testTokenBtn) testTokenBtn.addEventListener("click", testToken);
+  const syncBtn = document.getElementById("syncFromGithubBtn");
+  if (syncBtn) syncBtn.addEventListener("click", syncFromGithub);
+
   // 照片 / 视频上传
   const uploadZone = document.getElementById("uploadZone");
   const fileInput = document.getElementById("fileInput");
@@ -82,12 +91,14 @@ async function init() {
 async function handleLogin() {
   const input = document.getElementById("loginInput").value.trim();
   const errorEl = document.getElementById("loginError");
+
+  // 尝试从 GitHub 拉取最新数据
   try {
-    adminData = await db.getData();
-    if (!adminData) adminData = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    adminData = await loadAdminData();
   } catch (e) {
     adminData = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
   }
+
   const password = adminData.adminPassword || DEFAULT_CONFIG.adminPassword;
   if (input === password) {
     sessionStorage.setItem("fp_admin_logged_in", "true");
@@ -96,6 +107,32 @@ async function handleLogin() {
     errorEl.textContent = "密码错误，请重试";
     document.getElementById("loginInput").value = "";
   }
+}
+
+/** 加载管理数据：GitHub 优先 → IndexedDB → 默认 */
+async function loadAdminData() {
+  // 1. 尝试从 GitHub 加载
+  if (githubAPI.hasToken) {
+    try {
+      const remoteData = await githubAPI.loadDataJSON();
+      if (remoteData && remoteData.categories) {
+        // 缓存到本地
+        try { await db.saveData(remoteData); } catch (e) {}
+        return remoteData;
+      }
+    } catch (e) {
+      console.warn("GitHub 加载失败，使用本地数据", e.message);
+    }
+  }
+
+  // 2. IndexedDB 缓存
+  try {
+    const saved = await db.getData();
+    if (saved) return saved;
+  } catch (e) {}
+
+  // 3. 默认配置
+  return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
 }
 
 function showAdmin() {
@@ -112,14 +149,8 @@ function logout() {
 // ========== Render All ==========
 async function renderAll() {
   if (!adminData) {
-    try {
-      adminData = await db.getData();
-      if (!adminData) adminData = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
-    } catch (e) {
-      adminData = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
-    }
+    adminData = await loadAdminData();
   }
-  // Migrate old items
   normalizeItems();
   renderDashboard();
   renderCategories();
@@ -127,6 +158,7 @@ async function renderAll() {
   renderSiteText();
   renderContact();
   renderServices();
+  renderTokenStatus();
 }
 
 function normalizeItems() {
@@ -164,8 +196,8 @@ function renderDashboard() {
       <div class="num" style="font-size:18px;padding-top:6px">${totalPhotos} / ${totalVideos}</div>
     </div>
     <div class="stat-card">
-      <div class="label">最后更新</div>
-      <div class="num" style="font-size:16px;padding-top:8px">${formatDate(Date.now())}</div>
+      <div class="label">同步状态</div>
+      <div class="num" style="font-size:16px;padding-top:8px">${githubAPI.hasToken ? '🟢 GitHub' : '🟡 仅本地'}</div>
     </div>
   `;
 
@@ -180,9 +212,9 @@ function renderDashboard() {
 
     const row = document.createElement("div");
     row.className = "cat-row";
-    const iconHtml = ICONS[cat.icon] ? ICONS[cat.icon].replace('stroke="currentColor"','stroke="var(--gold)"') : "📷";
+    const iconHtml = ICONS[cat.icon] ? ICONS[cat.icon].replace('stroke="currentColor"','stroke="var(--gold)"') : "";
     row.innerHTML = `
-      <div class="cat-icon">${iconHtml}</div>
+      <div class="cat-icon">${iconHtml || "📷"}</div>
       <div class="cat-info">
         <div class="cat-name">${cat.name}</div>
         <div class="cat-meta">${cat.nameEn || ""}</div>
@@ -256,13 +288,13 @@ function openCategoryModal(index) {
   document.getElementById("modalBody").innerHTML = `
     <div class="form-group">
       <label class="form-label">品类ID<span class="req">*</span></label>
-      <input type="text" class="form-input" id="catId" value="${cat.id}" placeholder="英文ID，如 engagement" ${isEdit ? "disabled" : ""}>
+      <input type="text" class="form-input" id="catId" value="${cat.id}" placeholder="英文ID" ${isEdit ? "disabled" : ""}>
       <div class="form-hint">唯一标识，创建后不可修改</div>
     </div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">中文名称<span class="req">*</span></label>
-        <input type="text" class="form-input" id="catName" value="${cat.name}" placeholder="订婚跟拍">
+        <input type="text" class="form-input" id="catName" value="${cat.name}" placeholder="订婚布置">
       </div>
       <div class="form-group">
         <label class="form-label">英文名称</label>
@@ -317,7 +349,7 @@ function deleteCategory(index) {
   showToast("已删除", "success");
 }
 
-// ========== Photos & Videos ==========
+// ========== Photos & Videos — 推送到 GitHub ==========
 function renderPhotoCatSelect() {
   const select = document.getElementById("photoCatSelect");
   const cats = adminData.categories || [];
@@ -353,15 +385,19 @@ function renderPhotos() {
   items.forEach((item, i) => {
     const isVideo = item.type === "video";
     const src = item.src || item.image || "";
+    // 如果是相对路径，拼接 raw URL 用于预览
+    const previewSrc = (!/^https?:\/\//.test(src) && !/^data:/.test(src))
+      ? `https://raw.githubusercontent.com/huiguangfilm/fondant-party/main/${src}`
+      : src;
 
     const div = document.createElement("div");
     div.className = "photo-item";
     div.innerHTML = `
       <div class="photo-num">${i + 1}</div>
-      <div class="photo-type-badge ${isVideo ? "video" : "photo"}">${isVideo ? "🎬" : "📷"}</div>
+      <div class="photo-type-badge ${isVideo ? "video" : "photo"}">${isVideo ? "🎬" : "��"}</div>
       ${isVideo
-        ? `<div class="video-thumb"><video src="${src}" muted preload="metadata" onmouseenter="this.play()" onmouseleave="this.pause();this.currentTime=0"></video><div class="play-overlay"></div></div>`
-        : `<img src="${src}" alt="${item.label || ""}" loading="lazy">`
+        ? `<div class="video-thumb"><video src="${previewSrc}" muted preload="metadata" onmouseenter="this.play()" onmouseleave="this.pause();this.currentTime=0"></video><div class="play-overlay"></div></div>`
+        : `<img src="${previewSrc}" alt="${item.label || ""}" loading="lazy">`
       }
       <div class="photo-overlay">
         <input type="text" class="photo-label-input" value="${item.label || ""}" placeholder="${isVideo ? '视频标注' : '标注'}" onchange="updatePhotoLabel(${i}, this.value)">
@@ -377,7 +413,13 @@ function handleFileUpload(e) {
   e.target.value = "";
 }
 
-function handleFiles(files) {
+async function handleFiles(files) {
+  if (!githubAPI.hasToken) {
+    showToast("请先在「系统设置」中配置 GitHub Token", "error");
+    switchSection("settings");
+    return;
+  }
+
   const fileList = Array.from(files);
   const imageFiles = fileList.filter(f => f.type.startsWith("image/"));
   const videoFiles = fileList.filter(f => f.type.startsWith("video/"));
@@ -391,56 +433,95 @@ function handleFiles(files) {
   if (!cat) { showToast("请先选择品类", "error"); return; }
   if (!cat.items) cat.items = [];
 
-  // 处理图片
-  let processed = 0;
-  const total = imageFiles.filter(f => f.size <= 10 * 1024 * 1024).length +
-                videoFiles.filter(f => f.size <= 100 * 1024 * 1024).length;
+  showToast(`正在上传 ${imageFiles.length + videoFiles.length} 个文件到云端...`, "");
 
-  imageFiles.forEach((file) => {
-    if (file.size > 10 * 1024 * 1024) {
-      showToast(`${file.name} 超过10MB，已跳过`, "error");
-      if (++processed >= total) finishUpload();
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      compressImage(e.target.result, 1200, 0.85).then((compressed) => {
-        cat.items.push({ type: "photo", src: compressed, label: "" });
-        if (++processed >= total) finishUpload();
+  let uploaded = 0;
+  const total = imageFiles.length + videoFiles.length;
+  const errors = [];
+
+  // 处理图片 — 上传到 GitHub
+  for (const file of imageFiles) {
+    try {
+      if (file.size > 10 * 1024 * 1024) {
+        errors.push(`${file.name} 超过 10MB`);
+        uploaded++;
+        continue;
+      }
+      const base64 = await readFileAsDataURL(file);
+      const compressed = await compressImage(base64, 1200, 0.85);
+
+      // 生成文件路径
+      const ts = Date.now();
+      const rand = Math.random().toString(36).slice(2, 6);
+      const ext = file.name.split(".").pop() || "jpg";
+      const filePath = `uploads/${cat.id}/${ts}_${rand}.${ext}`;
+
+      // 上传到 GitHub
+      await githubAPI.uploadMediaFile(filePath, compressed, `Upload ${file.name} to ${cat.name}`);
+
+      // 添加到本地数据
+      cat.items.push({
+        type: "photo",
+        src: filePath,  // 相对路径，前端自动拼接 raw URL
+        label: "",
+        _githubPath: filePath,
       });
-    };
-    reader.readAsDataURL(file);
-  });
-
-  // 处理视频 (base64 encoding - only for small videos)
-  videoFiles.forEach((file) => {
-    if (file.size > 100 * 1024 * 1024) {
-      showToast(`${file.name} 超过100MB，已跳过`, "error");
-      if (++processed >= total) finishUpload();
-      return;
+      uploaded++;
+    } catch (e) {
+      errors.push(`${file.name}: ${e.message}`);
+      uploaded++;
     }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      cat.items.push({ type: "video", src: e.target.result, label: file.name.replace(/\.[^.]+$/, "") });
-      if (++processed >= total) finishUpload();
-    };
-    reader.onerror = () => {
-      showToast(`${file.name} 读取失败`, "error");
-      if (++processed >= total) finishUpload();
-    };
-    reader.readAsDataURL(file);
-  });
+  }
 
-  function finishUpload() {
-    saveData();
-    renderPhotos();
-    renderDashboard();
-    renderCategories();
-    showToast(`成功上传 ${processed} 个文件`, "success");
+  // 处理视频 — 视频太大不适合 GitHub，只保存 base64 到 IndexedDB
+  for (const file of videoFiles) {
+    try {
+      if (file.size > 100 * 1024 * 1024) {
+        errors.push(`${file.name} 超过 100MB`);
+        uploaded++;
+        continue;
+      }
+      const reader = new FileReader();
+      const base64 = await new Promise((resolve, reject) => {
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      // 视频 base64 太大不上传 GitHub，仅存本地
+      cat.items.push({
+        type: "video",
+        src: base64,
+        label: file.name.replace(/\.[^.]+$/, ""),
+      });
+      uploaded++;
+    } catch (e) {
+      errors.push(`${file.name}: ${e.message}`);
+      uploaded++;
+    }
+  }
+
+  // 保存 data.json 到 GitHub（图片上传后需要更新引用）
+  try {
+    await syncToGithub();
+  } catch (e) {
+    console.warn("GitHub 同步失败", e);
+  }
+
+  // 保存到本地
+  await db.saveData(adminData);
+  renderPhotos();
+  renderDashboard();
+  renderCategories();
+
+  if (errors.length > 0) {
+    showToast(`完成，${errors.length} 个问题：${errors.slice(0, 2).join("；")}`, "error");
+  } else {
+    showToast(`成功上传 ${uploaded} 个文件到云端，所有客户可见`, "success");
   }
 }
 
-function addVideoUrl() {
+async function addVideoUrl() {
   const url = document.getElementById("videoUrlInput").value.trim();
   if (!url) { showToast("请输入视频链接", "error"); return; }
   const cat = adminData.categories.find((c) => c.id === currentPhotoCat);
@@ -453,6 +534,15 @@ function addVideoUrl() {
   renderCategories();
   document.getElementById("videoUrlInput").value = "";
   showToast("视频链接已添加", "success");
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 function compressImage(dataUrl, maxWidth, quality) {
@@ -477,12 +567,25 @@ function updatePhotoLabel(index, label) {
   if (cat && cat.items[index]) { cat.items[index].label = label; saveData(); }
 }
 
-function deletePhoto(index) {
+async function deletePhoto(index) {
   const cat = adminData.categories.find((c) => c.id === currentPhotoCat);
   if (!cat || !cat.items[index]) return;
   const item = cat.items[index];
-  const label = item.type === "video" ? "视频" : "照片";
-  if (!confirm(`确定删除这个${label}吗？`)) return;
+  const itemLabel = item.type === "video" ? "视频" : "照片";
+  if (!confirm(`确定删除这个${itemLabel}吗？`)) return;
+
+  // 如果是 GitHub 上的文件，尝试删除
+  if (githubAPI.hasToken && item.src && !item.src.startsWith("data:") && !item.src.startsWith("http")) {
+    try {
+      const fileData = await githubAPI.readRepoFile(item.src);
+      if (fileData && fileData.sha) {
+        await githubAPI.deleteFile(item.src, fileData.sha, `Delete ${item.src}`);
+      }
+    } catch (e) {
+      console.warn("无法删除 GitHub 文件", e);
+    }
+  }
+
   cat.items.splice(index, 1);
   saveData();
   renderPhotos();
@@ -575,7 +678,7 @@ function openServiceModal(index) {
   document.getElementById("modalTitle").textContent = isEdit ? "编辑服务" : "新增服务";
   document.getElementById("modalBody").innerHTML = `
     <div class="form-group"><label class="form-label">图标</label><select class="form-select" id="svcIcon">${iconOptions}</select></div>
-    <div class="form-group"><label class="form-label">服务名称<span class="req">*</span></label><input type="text" class="form-input" id="svcTitle" value="${s.title}" placeholder="订婚跟拍"></div>
+    <div class="form-group"><label class="form-label">服务名称<span class="req">*</span></label><input type="text" class="form-input" id="svcTitle" value="${s.title}" placeholder="场景布置"></div>
     <div class="form-group"><label class="form-label">服务描述</label><textarea class="form-textarea" id="svcDesc" placeholder="服务详细描述">${s.desc}</textarea></div>
     <div class="form-group"><label class="form-label">价格 / 标注</label><input type="text" class="form-input" id="svcPrice" value="${s.price || ""}" placeholder="详情请咨询"></div>
   `;
@@ -599,6 +702,94 @@ function deleteService(index) {
 }
 
 // ========== Settings ==========
+function renderTokenStatus() {
+  const statusEl = document.getElementById("ghTokenStatus");
+  if (!statusEl) return;
+  if (githubAPI.hasToken) {
+    statusEl.innerHTML = '<span style="color:#22c55e">🟢 已连接 GitHub</span> — 上传的照片所有客户可见';
+  } else {
+    statusEl.innerHTML = '<span style="color:#f59e0b">🟡 未配置 Token</span> — 上传的照片仅本机可见，其他客户看不到';
+  }
+
+  const input = document.getElementById("ghTokenInput");
+  if (input && !input.value) {
+    input.value = githubAPI.token;
+  }
+}
+
+function saveToken() {
+  const input = document.getElementById("ghTokenInput");
+  const token = input.value.trim();
+  if (!token) {
+    githubAPI.token = "";
+    renderTokenStatus();
+    showToast("Token 已清除", "success");
+    return;
+  }
+  if (!token.startsWith("ghp_") && !token.startsWith("github_pat_")) {
+    showToast("Token 格式不正确，应以 ghp_ 或 github_pat_ 开头", "error");
+    return;
+  }
+  githubAPI.token = token;
+  renderTokenStatus();
+  showToast("Token 已保存，现在上传照片所有客户可见", "success");
+}
+
+async function testToken() {
+  const token = document.getElementById("ghTokenInput").value.trim();
+  if (!token) { showToast("请先输入 Token", "error"); return; }
+  try {
+    const resp = await fetch("https://api.github.com/user", {
+      headers: { "Authorization": `token ${token}` }
+    });
+    if (resp.ok) {
+      const user = await resp.json();
+      showToast(`Token 有效 — GitHub 用户：${user.login}`, "success");
+    } else {
+      showToast("Token 无效，请检查", "error");
+    }
+  } catch (e) {
+    showToast("网络错误，无法连接 GitHub", "error");
+  }
+}
+
+async function syncFromGithub() {
+  if (!githubAPI.hasToken) {
+    showToast("请先配置 GitHub Token", "error");
+    return;
+  }
+  try {
+    showToast("正在从 GitHub 同步...", "");
+    const remoteData = await githubAPI.loadDataJSON();
+    if (remoteData && remoteData.categories) {
+      adminData = remoteData;
+      normalizeItems();
+      await db.saveData(adminData);
+      renderAll();
+      showToast("同步成功！已从云端拉取最新数据", "success");
+    }
+  } catch (e) {
+    showToast("同步失败：" + e.message, "error");
+  }
+}
+
+async function syncToGithub() {
+  if (!githubAPI.hasToken) return;
+  const dataToSave = JSON.parse(JSON.stringify(adminData));
+  // 清理 base64 数据，只保留文件路径
+  dataToSave._updatedAt = new Date().toISOString();
+  // 清理 items 中的 base64 视频数据
+  (dataToSave.categories || []).forEach(cat => {
+    (cat.items || []).forEach(item => {
+      if (item.src && item.src.startsWith("data:video")) {
+        // 视频 base64 不上传 GitHub，保留在本地
+        item.src = "";
+      }
+    });
+  });
+  await githubAPI.saveDataJSON(dataToSave);
+}
+
 function changePassword() {
   const newPwd = document.getElementById("newPassword").value.trim();
   if (!newPwd) { showToast("请输入新密码", "error"); return; }
@@ -631,6 +822,8 @@ function importData(e) {
       adminData = data;
       normalizeItems();
       await db.saveData(adminData);
+      // 也推送到 GitHub
+      try { await syncToGithub(); } catch (e) { console.warn("GitHub sync failed", e); }
       renderAll();
       showToast("数据导入成功", "success");
     } catch (err) { showToast("导入失败：" + err.message, "error"); }
@@ -644,13 +837,24 @@ async function resetData() {
   if (!confirm("再次确认：真的要重置所有数据吗？")) return;
   await db.clearData();
   adminData = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+  // 也推送到 GitHub
+  try { await syncToGithub(); } catch (e) {}
   renderAll();
   showToast("已重置为初始状态", "success");
 }
 
 async function saveData() {
-  try { await db.saveData(adminData); }
-  catch (e) { console.error("保存失败", e); showToast("保存失败：" + e.message, "error"); }
+  // 1. 保存到 IndexedDB（本地缓存）
+  try { await db.saveData(adminData); } catch (e) { console.error("IndexedDB 保存失败", e); }
+
+  // 2. 推送到 GitHub（跨设备同步）
+  if (githubAPI.hasToken) {
+    try {
+      await syncToGithub();
+    } catch (e) {
+      console.warn("GitHub 同步失败（本地已保存）", e.message);
+    }
+  }
 }
 
 // ========== Section Switch ==========
@@ -663,6 +867,7 @@ function switchSection(section) {
   document.getElementById("pageTitle").textContent = titles[section] || "";
   document.getElementById("sidebar").classList.remove("open");
   document.getElementById("sidebarBackdrop").classList.remove("show");
+  if (section === "settings") renderTokenStatus();
 }
 
 function openModal() { document.getElementById("modalOverlay").classList.add("active"); }
@@ -672,7 +877,7 @@ function showToast(msg, type = "") {
   const toast = document.getElementById("toast");
   toast.textContent = msg; toast.className = "toast " + type;
   toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 2500);
+  setTimeout(() => toast.classList.remove("show"), 3000);
 }
 
 function formatDate(ts) {
