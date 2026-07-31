@@ -244,6 +244,30 @@
       <!-- ===== Settings ===== -->
       <section class="admin-section" id="section-settings">
         <div class="card" style="margin-bottom:20px">
+          <div class="card-header"><h3>🔗 GitHub 同步配置</h3></div>
+          <div class="card-body">
+            <p id="ghTokenStatus" style="font-size:14px;margin-bottom:16px">加载中...</p>
+            <p style="font-size:13px;color:var(--ink-soft);margin-bottom:12px">
+              配置 GitHub Personal Access Token 之后，同事上传的照片自动同步到云端，<strong>所有客户打开网站链接都能看到</strong>。不配置则数据仅保存在本机浏览器中。<br>
+              <a href="https://github.com/settings/tokens" target="_blank" style="color:var(--gold)">点击这里创建 Token →</a> 权限勾选 <code>repo</code> 即可。
+            </p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <input type="password" class="form-input" id="ghTokenInput" placeholder="粘贴 GitHub Token（ghp_ 或 github_pat_ 开头）" style="flex:1;min-width:250px">
+              <button class="btn btn-gold btn-sm" id="saveTokenBtn">保存 Token</button>
+              <button class="btn btn-outline btn-sm" id="testTokenBtn">测试连接</button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header"><h3>☁️ 云端同步</h3></div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--ink-soft);margin-bottom:12px">
+              从 GitHub 拉取最新数据。如果你在其他电脑或手机上修改了内容，点这里同步到当前设备。
+            </p>
+            <button class="btn btn-outline" id="syncFromGithubBtn">🔄 从云端拉取最新数据</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:20px">
           <div class="card-header"><h3>修改管理密码</h3></div>
           <div class="card-body">
             <div class="form-group">
@@ -301,6 +325,7 @@
 
 <script src="js/config.js"></script>
 <script src="js/db.js"></script>
+<script src="js/github-api.js"></script>
 <script src="js/admin.js"></script>
 </body>
 </html>
