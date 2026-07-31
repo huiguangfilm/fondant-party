@@ -141,7 +141,10 @@
 <div class="lightbox" id="lightbox">
   <button class="lightbox-close" id="lbClose" aria-label="关闭">&times;</button>
   <button class="lightbox-nav lightbox-prev" id="lbPrev" aria-label="上一张">&#8249;</button>
-  <img class="lightbox-img" id="lbImg" src="" alt="">
+  <div class="lightbox-content" id="lbContent">
+    <img class="lightbox-img" id="lbImg" src="" alt="">
+    <video class="lightbox-video" id="lbVideo" controls playsinline style="display:none"></video>
+  </div>
   <button class="lightbox-nav lightbox-next" id="lbNext" aria-label="下一张">&#8250;</button>
   <div class="lightbox-label" id="lbLabel"></div>
   <div class="lightbox-counter" id="lbCounter"></div>
