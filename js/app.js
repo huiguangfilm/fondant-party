@@ -1,6 +1,7 @@
 /**
  * app.js — 前台网站逻辑
- * 从 config.js 读取数据渲染网站，支持照片+视频混合展示
+ * 数据加载链：GitHub data.json → IndexedDB 缓存 → 默认配置
+ * 客户打开链接 = 所有人看到同步内容
  */
 
 let siteData = null;
@@ -8,41 +9,66 @@ let currentCategory = null;
 let currentGallery = [];
 let currentIndex = 0;
 
-// 默认占位图
+// 默认占位图（当 data.json 和 IndexedDB 都没数据时）
 const PLACEHOLDER_IMAGES = {
-  decor: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&q=80",
-  photo: "https://images.unsplash.com/photo-1606800052052-a08af7148866?w=800&q=80",
-  zhuazhou: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&q=80",
-  engagement: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80",
-  video: "https://images.unsplash.com/photo-1478359905291-76d4bd7d1a2e?w=800&q=80",
-  host: "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=800&q=80",
-  birthday: "https://images.unsplash.com/photo-1530542112616-7a46b83c18a1?w=800&q=80",
-  wedding: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800&q=80",
-  event: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
+  "engagement-decor": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80",
+  "birthday-decor": "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&q=80",
+  "wedding-photo": "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80",
+  "event-photo": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
+  "birthday-photo": "https://images.unsplash.com/photo-1530542112616-7a46b83c18a1?w=800&q=80",
+  "engagement-photo": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80",
+  "wedding-video": "https://images.unsplash.com/photo-1478359905291-76d4bd7d1a2e?w=800&q=80",
+  "prewedding-film": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800&q=80",
 };
 const DEFAULT_PLACEHOLDER = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&q=80";
 
 // 获取兼容的 item 数据
 function getItemSrc(item) {
-  return item.src || item.image || "";
+  const src = item.src || item.image || "";
+  // 如果是相对路径（如 uploads/xxx.jpg），拼接 raw GitHub 地址
+  if (src && !/^https?:\/\//.test(src) && !/^data:/.test(src)) {
+    return `https://raw.githubusercontent.com/huiguangfilm/fondant-party/main/${src}`;
+  }
+  return src;
 }
 function getItemType(item) {
   return item.type || "photo";
 }
 
 async function init() {
-  // 始终加载 IndexedDB 数据（同事后台上传的内容都在这里）
+  let loaded = false;
+
+  // 1. 尝试从 GitHub 加载 data.json（所有客户都能看到的最新内容，无需 Token）
   try {
-    const saved = await db.getData();
-    if (saved) {
-      siteData = saved;
-    } else {
-      siteData = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    const remoteData = await githubAPI.loadDataJSON();
+    if (remoteData && remoteData.categories) {
+      siteData = remoteData;
+      // 缓存到本地 IndexedDB，下次加载更快
+      try { await db.saveData(remoteData); } catch (e) {}
+      loaded = true;
     }
   } catch (e) {
-    console.warn("无法加载 IndexedDB，使用默认配置", e);
+    console.warn("无法从 GitHub 加载数据，尝试本地缓存", e.message);
+  }
+
+  // 2. 回退到 IndexedDB 缓存
+  if (!loaded) {
+    try {
+      const saved = await db.getData();
+      if (saved && saved.categories) {
+        siteData = saved;
+        loaded = true;
+      }
+    } catch (e) {
+      console.warn("无法加载 IndexedDB 缓存", e);
+    }
+  }
+
+  // 3. 最终回退到默认配置
+  if (!loaded) {
     siteData = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
   }
+
   normalizeItems();
   renderHero();
   renderAbout();
@@ -101,7 +127,10 @@ function renderAbout() {
   });
 
   const img = document.getElementById("aboutImg");
-  if (a.image) img.src = a.image;
+  if (a.image) {
+    // 如果是相对路径，也用 raw GitHub
+    img.src = /^https?:\/\//.test(a.image) ? a.image : `https://raw.githubusercontent.com/huiguangfilm/fondant-party/main/${a.image}`;
+  }
 }
 
 function renderReasons() {
@@ -198,9 +227,8 @@ function renderGallery(cat) {
         <span class="gallery-item-label">${label}</span>
       `;
     } else {
-      const imgSrc = src || PLACEHOLDER_IMAGES[cat.id] || DEFAULT_PLACEHOLDER;
       div.innerHTML = `
-        <img src="${imgSrc}" alt="${label}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <img src="${src}" alt="${label}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <span class="gallery-img-fallback" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:var(--bg-warm);font-size:32px">📷</span>
         <span class="gallery-item-label">${label}</span>
       `;
@@ -210,7 +238,6 @@ function renderGallery(cat) {
   });
 }
 
-// 视频缩略图：如果是 base64 video 或 URL，尝试用 poster 方式
 function getVideoThumb(src) {
   if (!src || /^https?:\/\//.test(src) || /^data:image/.test(src)) return src;
   const catId = currentCategory ? currentCategory.id : "";
@@ -286,7 +313,6 @@ function renderContact() {
 
 // ========== Lightbox ==========
 const lightbox = document.getElementById("lightbox");
-const lbContent = document.getElementById("lbContent");
 const lbImg = document.getElementById("lbImg");
 const lbVideo = document.getElementById("lbVideo");
 const lbLabel = document.getElementById("lbLabel");
@@ -308,7 +334,6 @@ function openLightbox(cat, index) {
 function closeLightbox() {
   lightbox.classList.remove("active");
   document.body.style.overflow = "";
-  // 停止视频播放
   if (lbVideo) {
     lbVideo.pause();
     lbVideo.src = "";
