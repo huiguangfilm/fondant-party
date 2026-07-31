@@ -1,0 +1,106 @@
+{
+  "site": {
+    "brandName": "翻糖派对",
+    "brandNameEn": "FONDANT PARTY",
+    "tagline": "翻糖藏甜，镜头留欢",
+    "heroTag": "FONDANT PARTY",
+    "heroTitleEn": "Celebrate Every Moment",
+    "subTagline": "一站式派对布置 · 用影像封存甜蜜",
+    "location": "阜阳本地全品类派对服务"
+  },
+  "about": {
+    "title": "关于翻糖派对",
+    "paragraphs": [
+      "翻糖派对是阜阳本地一站式全品类派对服务品牌。我们集场景布置、摄影摄像、仪式主持于一体，从设计执行到现场落地，为您提供专业全包服务。",
+      "拥有全套专业设备，不满意重拍、修片到满意为止。透明消费、品质保障，让每一场派对都值得被认真对待。"
+    ],
+    "stats": [
+      { "num": "8+", "label": "大服务品类" },
+      { "num": "100%", "label": "透明消费" },
+      { "num": "1对1", "label": "专属策划" }
+    ],
+    "image": "images/brand/storefront.jpg"
+  },
+  "contact": {
+    "wechat": "fondant_party",
+    "phone": "199-0558-1912",
+    "phone2": "182-5582-2368",
+    "xiaohongshu": "@翻糖派对",
+    "email": "",
+    "address": "阜阳市"
+  },
+  "categories": [
+    { "id": "engagement-decor", "name": "订婚布置", "nameEn": "ENGAGEMENT DECOR", "icon": "ring", "description": "中式轻奢订婚氛围感布置，从花艺到灯光，打造属于你们的浪漫仪式场景", "items": [] },
+    { "id": "birthday-decor", "name": "周岁宴布置", "nameEn": "1ST BIRTHDAY DECOR", "icon": "baby", "description": "宝宝周岁专属仪式场景布置，抓周道具、背景气球、主题定制一站式完成", "items": [] },
+    { "id": "wedding-photo", "name": "婚礼跟拍", "nameEn": "WEDDING PHOTO", "icon": "camera", "description": "婚礼全程纪实摄影跟拍，捕捉每一个动人瞬间，高清精修按时交付", "items": [] },
+    { "id": "event-photo", "name": "活动跟拍", "nameEn": "EVENT PHOTO", "icon": "event", "description": "开业典礼、年会、发布会等商业活动全程摄影跟拍记录", "items": [] },
+    { "id": "birthday-photo", "name": "周岁宴跟拍", "nameEn": "1ST BIRTHDAY PHOTO", "icon": "cake", "description": "宝宝周岁宴全程纪实跟拍，记录抓周、庆生每一个珍贵时刻", "items": [] },
+    { "id": "engagement-photo", "name": "订婚宴跟拍", "nameEn": "ENGAGEMENT PHOTO", "icon": "bouquet", "description": "订婚宴全程纪实跟拍，定格交换信物、甜蜜合影等浪漫画面", "items": [] },
+    { "id": "wedding-video", "name": "婚礼视频拍摄", "nameEn": "WEDDING VIDEO", "icon": "video", "description": "婚礼全程视频录制与精剪，多机位记录，交付婚礼全程纪录片", "items": [] },
+    { "id": "prewedding-film", "name": "婚前微电影拍摄", "nameEn": "PRE-WEDDING FILM", "icon": "film", "description": "定制婚前爱情微电影，剧本策划、场景拍摄、专业后期剪辑，打造专属爱情故事", "items": [] }
+  ],
+  "services": [
+    { "icon": "balloon", "title": "场景布置", "desc": "全主题气球场地搭建，根据您的需求定制专属场景风格", "price": "详询客服" },
+    { "icon": "camera", "title": "摄影跟拍", "desc": "全程抓拍高清纪实照片，不满意重拍、修片到满意为止", "price": "详询客服" },
+    { "icon": "baby", "title": "抓周布置", "desc": "宝宝周岁专属仪式场景，抓周道具、背景布置一站式完成", "price": "详询客服" },
+    { "icon": "ring", "title": "订婚宴布置", "desc": "中式轻奢订婚氛围感布置，打造浪漫订婚仪式", "price": "详询客服" },
+    { "icon": "video", "title": "派对摄像", "desc": "全程录制与短片剪辑，记录珍贵时刻", "price": "详询客服" },
+    { "icon": "mic", "title": "仪式主持", "desc": "专业控场带动氛围，仪式流程策划与主持", "price": "详询客服" }
+  ],
+  "process": {
+    "title": "服务流程",
+    "titleEn": "OUR PROCESS",
+    "subtitle": "从策划到留念，一站式完成甜蜜仪式",
+    "steps": [
+      { "num": "01", "title": "需求沟通", "desc": "咨询客服，沟通派对需求与预算" },
+      { "num": "02", "title": "方案确认", "desc": "确定主题风格，锁定设计方案" },
+      { "num": "03", "title": "场地布置", "desc": "当天提前到场，专业团队搭建" },
+      { "num": "04", "title": "活动跟拍", "desc": "摄影摄像全程记录精彩瞬间" },
+      { "num": "05", "title": "成片交付", "desc": "后期精修，按时交付成品" }
+    ],
+    "footer": "全程专人对接 · 档期提前锁定 · 成片按时交付"
+  },
+  "promises": {
+    "title": "六大服务承诺",
+    "titleEn": "OUR PROMISES",
+    "items": [
+      { "num": "01", "title": "无任何\n隐形消费" },
+      { "num": "02", "title": "未核销\n随时可退" },
+      { "num": "03", "title": "标准化\n服务流程" },
+      { "num": "04", "title": "专属策划\n1对1服务" },
+      { "num": "05", "title": "设计修改\n到满意为止" },
+      { "num": "06", "title": "布置不满意\n现场调整" }
+    ]
+  },
+  "reasons": {
+    "title": "选择翻糖派对的理由",
+    "titleEn": "WHY CHOOSE US",
+    "items": [
+      "一站式派对服务",
+      "场景布置 · 摄影摄像 · 仪式主持",
+      "拥有全套专业设备",
+      "品质输出",
+      "不满意重拍，修片到满意为止",
+      "阜阳本地全品类派对服务",
+      "上门一站式服务 · 无隐形消费",
+      "多样化的创意，满足您的各种需求",
+      "透明消费 · 品质保障",
+      "从设计执行到现场，享受专业全包服务"
+    ]
+  },
+  "decorProcess": {
+    "title": "场景布置服务流程",
+    "steps": [
+      "咨询客服沟通需求",
+      "确定主题锁定风格",
+      "下单后找客服核销锁定档期",
+      "当天提前2小时布置服务",
+      "气球搭建与场景布置",
+      "确认无误后交付（修图）",
+      "仪式结束后撤场"
+    ],
+    "footer": "上门搭建 · 现场确认 · 仪式结束后清理撤场"
+  },
+  "adminPassword": "fantang2026",
+  "_updatedAt": ""
+}
