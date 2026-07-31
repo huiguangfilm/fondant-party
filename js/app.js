@@ -1,6 +1,6 @@
 /**
  * app.js — 前台网站逻辑
- * 从 config.js 读取数据渲染网站，所有内容固化在代码中
+ * 从 config.js 读取数据渲染网站，支持照片+视频混合展示
  */
 
 let siteData = null;
@@ -8,7 +8,7 @@ let currentCategory = null;
 let currentGallery = [];
 let currentIndex = 0;
 
-// 默认占位图（按品类分配）
+// 默认占位图
 const PLACEHOLDER_IMAGES = {
   decor: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&q=80",
   photo: "https://images.unsplash.com/photo-1606800052052-a08af7148866?w=800&q=80",
@@ -18,12 +18,21 @@ const PLACEHOLDER_IMAGES = {
   host: "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=800&q=80",
   birthday: "https://images.unsplash.com/photo-1530542112616-7a46b83c18a1?w=800&q=80",
   wedding: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800&q=80",
+  event: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80",
 };
 const DEFAULT_PLACEHOLDER = "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&q=80";
 
+// 获取兼容的 item 数据
+function getItemSrc(item) {
+  return item.src || item.image || "";
+}
+function getItemType(item) {
+  return item.type || "photo";
+}
+
 function init() {
   siteData = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
-
+  normalizeItems();
   renderHero();
   renderAbout();
   renderReasons();
@@ -33,6 +42,20 @@ function init() {
   renderPromises();
   renderContact();
   observeFadeIn();
+}
+
+// 兼容旧数据格式
+function normalizeItems() {
+  (siteData.categories || []).forEach(cat => {
+    if (!cat.items) cat.items = [];
+    cat.items = cat.items.map(item => {
+      if (!item.type) {
+        return { type: "photo", src: item.image || item.src || "", label: item.label || "" };
+      }
+      if (!item.src) item.src = item.image || "";
+      return item;
+    });
+  });
 }
 
 // ========== Render Hero ==========
@@ -45,7 +68,6 @@ function renderHero() {
   if (s.location) document.getElementById("heroLocation").textContent = s.location;
 }
 
-// ========== Render About ==========
 function renderAbout() {
   const a = siteData.about;
   if (a.title) document.getElementById("aboutTitle").textContent = a.title;
@@ -71,13 +93,11 @@ function renderAbout() {
   if (a.image) img.src = a.image;
 }
 
-// ========== Render Reasons ==========
 function renderReasons() {
   const r = siteData.reasons || {};
   const grid = document.getElementById("reasonsGrid");
   if (!grid) return;
   grid.innerHTML = "";
-
   (r.items || []).forEach((item, i) => {
     const tag = document.createElement("div");
     tag.className = "reason-tag fade-in";
@@ -85,12 +105,10 @@ function renderReasons() {
     tag.textContent = item;
     grid.appendChild(tag);
   });
-
   const footer = document.getElementById("reasonsFooter");
   if (footer) footer.textContent = r.footer || "";
 }
 
-// ========== Render Services ==========
 function renderServices() {
   const grid = document.getElementById("serviceGrid");
   grid.innerHTML = "";
@@ -108,7 +126,7 @@ function renderServices() {
   });
 }
 
-// ========== Render Categories (pills + gallery) ==========
+// ========== Render Categories ==========
 function renderCategories() {
   const cats = siteData.categories || [];
   const pillsContainer = document.getElementById("catPills");
@@ -130,7 +148,6 @@ function selectCategory(catId) {
   document.querySelectorAll(".cat-pill").forEach((p) => {
     p.classList.toggle("active", p.dataset.catId === catId);
   });
-
   const cat = siteData.categories.find((c) => c.id === catId);
   if (!cat) return;
   currentCategory = cat;
@@ -143,9 +160,10 @@ function renderGallery(cat) {
 
   const items = cat.items || [];
   if (items.length === 0) {
+    const iconHtml = ICONS[cat.icon] || "";
     grid.innerHTML = `
       <div class="gallery-empty">
-        <div class="icon">${ICONS[cat.icon] ? "" : "📷"}</div>
+        <div class="icon">${iconHtml ? iconHtml.replace(/<svg/, '<svg style="width:48px;height:48px;opacity:.3"') : "📷"}</div>
         <p>该品类暂无样片，请在后台上传</p>
       </div>
     `;
@@ -153,36 +171,54 @@ function renderGallery(cat) {
   }
 
   items.forEach((item, i) => {
+    const isVideo = getItemType(item) === "video";
+    const src = getItemSrc(item);
+    const label = item.label || cat.name;
+
     const div = document.createElement("div");
     div.className = "gallery-item";
     if (i === 0 && items.length >= 3) div.classList.add("feature");
-    const imgSrc = item.image || PLACEHOLDER_IMAGES[cat.id] || DEFAULT_PLACEHOLDER;
-    div.innerHTML = `
-      <img src="${imgSrc}" alt="${item.label || cat.name}" loading="lazy">
-      <span class="gallery-item-label">${item.label || cat.name}</span>
-    `;
+    if (isVideo) div.classList.add("video-item");
+
+    if (isVideo) {
+      div.innerHTML = `
+        <img src="${getVideoThumb(src)}" alt="${label}" loading="lazy">
+        <span class="gallery-play-btn" aria-hidden="true"></span>
+        <span class="gallery-item-label">${label}</span>
+      `;
+    } else {
+      const imgSrc = src || PLACEHOLDER_IMAGES[cat.id] || DEFAULT_PLACEHOLDER;
+      div.innerHTML = `
+        <img src="${imgSrc}" alt="${label}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <span class="gallery-img-fallback" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:var(--bg-warm);font-size:32px">📷</span>
+        <span class="gallery-item-label">${label}</span>
+      `;
+    }
     div.addEventListener("click", () => openLightbox(cat, i));
     grid.appendChild(div);
   });
 }
 
+// 视频缩略图：如果是 base64 video 或 URL，尝试用 poster 方式
+function getVideoThumb(src) {
+  if (!src || /^https?:\/\//.test(src) || /^data:image/.test(src)) return src;
+  const catId = currentCategory ? currentCategory.id : "";
+  return PLACEHOLDER_IMAGES[catId] || DEFAULT_PLACEHOLDER;
+}
+
 // ========== Render Process ==========
 function renderProcess() {
   const p = siteData.process || {};
-
   const label = document.getElementById("processLabel");
   if (label && p.titleEn) label.textContent = p.titleEn;
-
   const title = document.getElementById("processTitle");
   if (title && p.title) title.textContent = p.title;
-
   const sub = document.getElementById("processSub");
   if (sub && p.subtitle) sub.textContent = p.subtitle;
 
   const stepsContainer = document.getElementById("processSteps");
   if (!stepsContainer) return;
   stepsContainer.innerHTML = "";
-
   (p.steps || []).forEach((step) => {
     const div = document.createElement("div");
     div.className = "process-step fade-in";
@@ -193,77 +229,64 @@ function renderProcess() {
     `;
     stepsContainer.appendChild(div);
   });
-
   const footer = document.getElementById("processFooter");
   if (footer && p.footer) footer.textContent = p.footer;
 }
 
-// ========== Render Promises ==========
 function renderPromises() {
   const p = siteData.promises || {};
-
   const label = document.getElementById("promisesLabel");
   if (label && p.titleEn) label.textContent = p.titleEn;
-
   const title = document.getElementById("promisesTitle");
   if (title && p.title) title.textContent = p.title;
-
   const sub = document.getElementById("promisesSub");
   if (sub) sub.textContent = p.subtitle || "Your Satisfaction, Our Priority";
 
   const grid = document.getElementById("promisesGrid");
   if (!grid) return;
   grid.innerHTML = "";
-
   (p.items || []).forEach((item) => {
     const card = document.createElement("div");
     card.className = "promise-card fade-in";
-    card.innerHTML = `
-      <div class="num">${item.num}</div>
-      <div class="title">${item.title}</div>
-    `;
+    card.innerHTML = `<div class="num">${item.num}</div><div class="title">${item.title}</div>`;
     grid.appendChild(card);
   });
 }
 
-// ========== Render Contact ==========
 function renderContact() {
   const c = siteData.contact || {};
   const container = document.getElementById("contactInfo");
   container.innerHTML = "";
-
   const items = [
     c.wechat && { icon: "💬", label: "微信咨询", value: c.wechat },
     c.phone && { icon: "📞", label: "电话预约", value: c.phone },
     c.phone2 && { icon: "📱", label: "备用电话", value: c.phone2 },
     c.xiaohongshu && { icon: "📕", label: "小红书", value: c.xiaohongshu },
   ].filter(Boolean);
-
   items.forEach((item) => {
     const el = document.createElement("div");
     el.className = "contact-item fade-in";
-    el.innerHTML = `
-      <div class="contact-icon">${item.icon}</div>
-      <div class="label">${item.label}</div>
-      <div class="value">${item.value}</div>
-    `;
+    el.innerHTML = `<div class="contact-icon">${item.icon}</div><div class="label">${item.label}</div><div class="value">${item.value}</div>`;
     container.appendChild(el);
   });
-
   const cta = document.getElementById("contactCta");
   if (cta) cta.textContent = "添加微信 · 预约咨询 · 定制属于你的派对";
 }
 
 // ========== Lightbox ==========
 const lightbox = document.getElementById("lightbox");
+const lbContent = document.getElementById("lbContent");
 const lbImg = document.getElementById("lbImg");
+const lbVideo = document.getElementById("lbVideo");
 const lbLabel = document.getElementById("lbLabel");
 const lbCounter = document.getElementById("lbCounter");
 
 function openLightbox(cat, index) {
   currentGallery = (cat.items || []).map((item) => ({
-    src: item.image || PLACEHOLDER_IMAGES[cat.id] || DEFAULT_PLACEHOLDER,
+    type: getItemType(item),
+    src: getItemSrc(item),
     label: item.label || cat.name,
+    catId: cat.id,
   }));
   currentIndex = index;
   updateLightbox();
@@ -274,16 +297,35 @@ function openLightbox(cat, index) {
 function closeLightbox() {
   lightbox.classList.remove("active");
   document.body.style.overflow = "";
+  // 停止视频播放
+  if (lbVideo) {
+    lbVideo.pause();
+    lbVideo.src = "";
+    lbVideo.style.display = "none";
+  }
 }
 
 function updateLightbox() {
   if (currentGallery.length === 0) return;
   const item = currentGallery[currentIndex];
-  lbImg.src = item.src;
-  lbImg.alt = item.label;
   lbLabel.textContent = item.label;
   lbLabel.classList.add("show");
   lbCounter.textContent = `${currentIndex + 1} / ${currentGallery.length}`;
+
+  if (item.type === "video") {
+    lbImg.style.display = "none";
+    lbVideo.style.display = "block";
+    lbVideo.src = item.src;
+    lbVideo.play().catch(() => {});
+  } else {
+    lbVideo.style.display = "none";
+    lbVideo.pause();
+    lbVideo.src = "";
+    lbImg.style.display = "block";
+    const fallback = PLACEHOLDER_IMAGES[item.catId] || DEFAULT_PLACEHOLDER;
+    lbImg.src = item.src || fallback;
+    lbImg.alt = item.label;
+  }
 }
 
 document.getElementById("lbClose").addEventListener("click", closeLightbox);
@@ -307,9 +349,7 @@ document.addEventListener("keydown", (e) => {
 
 // Touch swipe
 let touchStartX = 0;
-lightbox.addEventListener("touchstart", (e) => {
-  touchStartX = e.touches[0].clientX;
-});
+lightbox.addEventListener("touchstart", (e) => { touchStartX = e.touches[0].clientX; });
 lightbox.addEventListener("touchend", (e) => {
   const dx = e.changedTouches[0].clientX - touchStartX;
   if (Math.abs(dx) > 50) {
@@ -332,32 +372,24 @@ navLinks.querySelectorAll("a").forEach((link) => {
   });
 });
 
-// ========== Nav Scroll ==========
+// Nav Scroll
 const nav = document.getElementById("nav");
-window.addEventListener("scroll", () => {
-  nav.classList.toggle("scrolled", window.scrollY > 50);
-});
+window.addEventListener("scroll", () => { nav.classList.toggle("scrolled", window.scrollY > 50); });
 
-// ========== Scroll Reveal ==========
+// Scroll Reveal
 let fadeObserver = null;
 function observeFadeIn() {
   if (!fadeObserver) {
-    fadeObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-            fadeObserver.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
-    );
+    fadeObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          fadeObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
   }
-  document.querySelectorAll(".fade-in:not(.visible)").forEach((el) => {
-    fadeObserver.observe(el);
-  });
+  document.querySelectorAll(".fade-in:not(.visible)").forEach((el) => fadeObserver.observe(el));
 }
 
-// ========== Init ==========
 init();
