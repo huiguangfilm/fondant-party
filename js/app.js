@@ -30,8 +30,19 @@ function getItemType(item) {
   return item.type || "photo";
 }
 
-function init() {
-  siteData = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+async function init() {
+  // 始终加载 IndexedDB 数据（同事后台上传的内容都在这里）
+  try {
+    const saved = await db.getData();
+    if (saved) {
+      siteData = saved;
+    } else {
+      siteData = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    }
+  } catch (e) {
+    console.warn("无法加载 IndexedDB，使用默认配置", e);
+    siteData = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+  }
   normalizeItems();
   renderHero();
   renderAbout();
