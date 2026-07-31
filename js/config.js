@@ -24,7 +24,7 @@ const DEFAULT_CONFIG = {
       "拥有全套专业设备，不满意重拍、修片到满意为止。透明消费、品质保障，让每一场派对都值得被认真对待。",
     ],
     stats: [
-      { num: "7+", label: "大服务品类" },
+      { num: "8+", label: "大服务品类" },
       { num: "100%", label: "透明消费" },
       { num: "1对1", label: "专属策划" },
     ],
@@ -105,6 +105,14 @@ const DEFAULT_CONFIG = {
       nameEn: "WEDDING DECOR",
       icon: "bouquet",
       description: "婚礼场景布置，从仪式区到宴会厅，打造梦幻婚礼空间",
+      items: [],
+    },
+    {
+      id: "event",
+      name: "活动拍摄",
+      nameEn: "EVENT COVERAGE",
+      icon: "event",
+      description: "开业典礼、年会、发布会等商业活动全程拍摄记录，摄影+摄像双机位覆盖",
       items: [],
     },
   ],
@@ -227,4 +235,5 @@ const ICONS = {
   dessert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 21h16M5 21l1.5-9h11L19 21M8 12V8a4 4 0 0 1 8 0v4M10 6V3M14 6V3"/></svg>',
   video: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>',
   mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>',
+  event: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
 };
