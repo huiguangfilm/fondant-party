@@ -135,9 +135,17 @@
           <div class="card-body">
             <div class="upload-zone" id="uploadZone">
               <div class="icon">📷</div>
-              <p>点击或拖拽图片到此处上传</p>
-              <p class="hint">支持 JPG / PNG / WebP，单张建议小于 5MB</p>
-              <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
+              <p>点击或拖拽图片 / 视频到此处上传</p>
+              <p class="hint">图片支持 JPG / PNG / WebP；视频支持 MP4 / MOV / WebM，单文件小于 100MB</p>
+              <input type="file" id="fileInput" accept="image/*,video/mp4,video/mov,video/webm" multiple style="display:none">
+            </div>
+            <div class="upload-url-section" style="margin-top:16px;padding:16px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border)">
+              <label class="form-label" style="margin-bottom:8px">��粘贴视频链接（支持已上传的视频 URL / 外部链接）</label>
+              <div style="display:flex;gap:10px">
+                <input type="text" class="form-input" id="videoUrlInput" placeholder="https://example.com/video.mp4">
+                <button class="btn btn-outline btn-sm" id="addVideoBtn" style="white-space:nowrap">+ 添加视频</button>
+              </div>
+              <div class="form-hint" style="margin-top:6px">支持直接粘贴在线视频链接，前台可直接播放</div>
             </div>
             <div class="photo-grid" id="photoGrid"></div>
           </div>
